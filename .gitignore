@@ -1,0 +1,5 @@
+.idea/
+# Env
+.env
+.env.*
+/backend/api/firebase-data/
