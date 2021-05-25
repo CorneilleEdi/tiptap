@@ -36,7 +36,10 @@ export class UsersProfileService {
 
     async updateUserProfile(userUid: string, data: any) {
         try {
-            const user = await this.usersProfileRepository.updateUser(userUid, data);
+            const user = await this.usersProfileRepository.updateUser(
+                userUid,
+                Helpers.sanitizeInputs(data),
+            );
 
             return asServiceResponse(HttpStatus.OK, `User profile updated`, user);
         } catch (error) {

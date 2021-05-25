@@ -31,4 +31,22 @@ export class Helpers {
 
     static generateNumber = (size = 8) => nanoid.customAlphabet(Helpers.numbers, size)();
     static generateString = (size = 8) => nanoid.customAlphabet(Helpers.alphabet, size)();
+
+    static sanitizeInputs(data: any): object {
+        Object.keys(data).forEach((key) => {
+            if (data[key] === null || data[key] === undefined) {
+                delete data[key];
+            }
+        });
+
+        delete data.createdAt;
+        delete data.profileImage;
+        delete data.updatedAt;
+        delete data.lastLoginAt;
+        delete data.uid;
+        delete data.phoneNumber;
+        delete data.email;
+        delete data.authenticationInfo;
+        return data;
+    }
 }
