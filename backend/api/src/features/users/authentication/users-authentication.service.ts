@@ -9,9 +9,12 @@ export class UsersAuthenticationService {
     constructor(
         private readonly usersProfileRepository: UsersProfileRepository,
         private readonly firebaseAuthService: FirebaseAuthService,
-    ) { }
+    ) {}
 
-    async authenticateUser(userUid: string, { email, phoneNumber, profileImage, name }: AuthenticateUserDto) {
+    async authenticateUser(
+        userUid: string,
+        { email, phoneNumber, profileImage, name }: AuthenticateUserDto,
+    ) {
         if (!email && !phoneNumber) {
             throw new BadRequestException('Email or phone number is required');
         }

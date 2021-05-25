@@ -12,11 +12,11 @@ export class UserProfileMapper {
             profileImage: data.profileImage,
             questions: data.questions,
             answers: data.answers,
-            createdAt: data.createdAt ? data.createdAt.toDate().toLocaleString() : '',
-            updatedAt: data.updatedAt ? data.updatedAt.toDate().toLocaleString() : '',
+            createdAt: data.createdAt ? data.createdAt.toMillis() : '',
+            updatedAt: data.updatedAt ? data.updatedAt.toMillis() : '',
             authenticationInfo: {
                 lastLogin: data.authenticationInfo.lastLogin
-                    ? data.authenticationInfo.lastLogin.toDate().toLocaleString()
+                    ? data.authenticationInfo.lastLogin.toMillis()
                     : '',
                 email: data.authenticationInfo.email,
                 phoneNumber: data.authenticationInfo.phoneNumber,
@@ -35,11 +35,11 @@ export class UserProfileMapper {
             createdAt: data.createdAt ? Timestamp.fromMillis(data.createdAt! as number) : null,
             updatedAt: data.updatedAt ? Timestamp.fromMillis(data.updatedAt! as number) : null,
             authenticationInfo: {
-                lastLogin: data.authenticationInfo.lastLogin
+                lastLogin: data.authenticationInfo?.lastLogin
                     ? Timestamp.fromMillis(data.authenticationInfo!.lastLogin! as number)
                     : null,
-                email: data.authenticationInfo.email || '',
-                phoneNumber: data.authenticationInfo.phoneNumber || '',
+                email: data.authenticationInfo?.email || '',
+                phoneNumber: data.authenticationInfo?.phoneNumber || '',
             },
         };
     }
