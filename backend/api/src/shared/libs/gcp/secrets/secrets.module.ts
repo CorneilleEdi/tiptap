@@ -8,5 +8,4 @@ import { SecretsService } from './secrets.service';
     exports: [SecretsService],
     imports: [ConfigModule, ConfigurationModule],
 })
-export class GCPSecretsModule {
-}
+export class GCPSecretsModule {}

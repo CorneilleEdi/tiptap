@@ -1,17 +1,11 @@
 {
-  "emulators": {
-    "firestore": {
-      "port": 8787
-    },
-    "storage": {
-      "port": 8788
-    },
-    "ui": {
-      "enabled": true,
-      "port": 9000
+    "emulators": {
+        "firestore": {
+            "port": 8787
+        },
+        "ui": {
+            "enabled": true,
+            "port": 9000
+        }
     }
-  },
-  "storage": {
-    "rules": "storage.rules"
-  }
 }

@@ -1,15 +1,14 @@
 import { Storage } from '@google-cloud/storage';
-import { Inject, Injectable, Logger } from "@nestjs/common";
 import * as stream from 'stream';
-import { ERROR_MESSAGE } from "../../../utils/constants/error-message";
-import { GCP_STORAGE } from "../../../utils/constants/providers.constant";
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ERROR_MESSAGE } from '../../../utils/constants/error-message';
+import { GCP_STORAGE } from '../../../utils/constants/providers.constant';
 
 @Injectable()
 export class StorageService {
     private readonly logger: Logger = new Logger(this.constructor.name);
 
-    constructor(@Inject(GCP_STORAGE) private storage: Storage) { }
-
+    constructor(@Inject(GCP_STORAGE) private storage: Storage) {}
 
     async deleteFileWithLink(link: string): Promise<void> {
         try {

@@ -1,12 +1,12 @@
+import { auth } from 'firebase-admin';
 import {
     BadRequestException,
     HttpService,
     Inject,
     Injectable,
-    NotFoundException
+    NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { auth } from 'firebase-admin';
 import { FIREBASE_AUTH } from '../../utils/constants/providers.constant';
 import { SECRETS } from '../../utils/constants/secrets.constant';
 import { SecretsService } from '../gcp/secrets';
@@ -20,7 +20,7 @@ export class FirebaseAuthService {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
         private readonly secretsServices: SecretsService,
-    ) { }
+    ) {}
 
     /**
      * createFirebaseUser

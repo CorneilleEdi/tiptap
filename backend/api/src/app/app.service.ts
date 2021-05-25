@@ -3,6 +3,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class AppService {
     getHello(): { message: string } {
-        return { message: "Welcome on TipTap Backend api" };
+        return { message: 'Welcome on TipTap Backend api' };
     }
 }

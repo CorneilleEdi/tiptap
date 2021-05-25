@@ -16,4 +16,4 @@ import { firebaseProviders } from './firebase.provider';
         }),
     ],
 })
-export class FirebaseModule { }
+export class FirebaseModule {}

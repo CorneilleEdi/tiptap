@@ -4,7 +4,7 @@ import { CONFIGURATIONS } from './configuration';
 
 @Injectable()
 export class ConfigurationService {
-    constructor(private configService: ConfigService) { }
+    constructor(private configService: ConfigService) {}
 
     get appName(): string {
         return this.configService.get(CONFIGURATIONS.APP_NAME);

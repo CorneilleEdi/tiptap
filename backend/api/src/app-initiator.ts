@@ -1,7 +1,7 @@
-import { MethodNotAllowedException } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import * as helmet from 'helmet';
 import * as hpp from 'hpp';
+import { MethodNotAllowedException } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { HttpMethods } from './shared/utils/constants/http-methods';
 
 export class AppInitiator {
@@ -17,7 +17,6 @@ export class AppInitiator {
     constructor(private readonly app: NestExpressApplication) {
         this.initiateMiddleware();
     }
-
 
     private initiateMiddleware() {
         // Starts listening for shutdown hooks

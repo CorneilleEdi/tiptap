@@ -1,6 +1,6 @@
+import { ConfigurationModule } from 'src/shared/configuration';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ConfigurationModule } from 'src/shared/configuration';
 import { storageProviders } from './storage.provider';
 import { StorageService } from './storage.service';
 
@@ -9,4 +9,4 @@ import { StorageService } from './storage.service';
     exports: [...storageProviders, StorageService],
     imports: [ConfigModule, ConfigurationModule],
 })
-export class StorageModule { }
+export class StorageModule {}

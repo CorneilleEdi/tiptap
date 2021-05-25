@@ -22,7 +22,6 @@ async function bootstrap() {
 
     await app.listen(PORT, () => {
         new Logger('ApiApplication').verbose(`Api start ,running and listening on port ${PORT}`);
-
     });
 }
 bootstrap();
