@@ -9,3 +9,9 @@ variable "project_region" {
   type        = string
   default     = "asia-south1"
 }
+
+variable "app_name" {
+  description = "Name of the app"
+  type        = string
+  default     = "tiptap"
+}

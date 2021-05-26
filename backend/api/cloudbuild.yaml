@@ -1,0 +1,42 @@
+steps:
+    - name: 'gcr.io/cloud-builders/docker'
+      args:
+          [
+              'build',
+              '-t',
+              'gcr.io/$_PROJECT_ID/$_APP_NAME:$_TAG',
+              '--build-arg',
+              'APP_VERSION=$_TAG',
+              '--build-arg',
+              'APP_NAME=$_APP_NAME',
+              '.',
+          ]
+    - name: 'gcr.io/cloud-builders/docker'
+      args: ['push', 'gcr.io/$_PROJECT_ID/$_APP_NAME:$_TAG']
+    - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+      entrypoint: gcloud
+      args:
+          [
+              'run',
+              'deploy',
+              '$_APP_NAME',
+              '--image',
+              'gcr.io/$_PROJECT_ID/$_APP_NAME:$_TAG',
+              '--region',
+              '$_PROJECT_REGION',
+              '--platform',
+              'managed',
+              '--cpu',
+              '1',
+              '--max-instances',
+              '2',
+              '--min-instances',
+              '0',
+              '--memory',
+              '512Mi',
+              '--concurrency',
+              '250',
+              '--allow-unauthenticated',
+          ]
+images:
+    - gcr.io/$_PROJECT_ID/$_APP_NAME:$_TAG
