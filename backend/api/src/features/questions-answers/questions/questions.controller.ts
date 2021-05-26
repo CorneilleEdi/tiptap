@@ -11,9 +11,18 @@ export class QuestionsController {
     constructor(private readonly questionsService: QuestionsService) {}
 
     @Get(':questionUid')
-    @UseGuards(UsersAuthenticationRequiredGuard)
     async getQuestion(@Req() req: Request, @Param('questionUid') questionUid: string) {
         return await this.questionsService.getQuestion(req.uid, questionUid);
+    }
+
+    @Get(':questionUid/full')
+    async getQuestionWithAnswers(@Req() req: Request, @Param('questionUid') questionUid: string) {
+        return await this.questionsService.getQuestionWithAnswers(req.uid, questionUid);
+    }
+
+    @Get('users/:userUid')
+    async getAnswersByUser(@Param('userUid') userUid: string) {
+        return await this.questionsService.getQuestionsByUser(userUid);
     }
 
     @Post('')

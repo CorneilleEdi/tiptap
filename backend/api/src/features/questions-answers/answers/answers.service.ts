@@ -1,9 +1,16 @@
-import { BadRequestException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpStatus,
+    Injectable,
+    InternalServerErrorException,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { asServiceResponse } from '../../../shared/core/middlewares/responses.middleware';
 import { FirestoreDocumentNotFoundException } from '../../../shared/libs/gcp/firestore/firestore.exception';
 import { ERROR_MESSAGE } from '../../../shared/utils/constants/error-message';
 import { Helpers } from '../../../shared/utils/helpers';
 import { UsersProfileRepository } from '../../users/profile/users-profile.repository';
+import { UserNotFoundException } from '../../users/profile/users.exception';
 import { QuestionsAnswersRepository } from '../questions-answers.repository';
 import { QuestionNotFoundException } from '../questions/questions.exception';
 import { CreateAnswerDto } from './answers.dto';
@@ -22,6 +29,24 @@ export class AnswersService {
         if (!answer) throw new AnswerNotFoundException(answerUid);
 
         return asServiceResponse(HttpStatus.OK, 'Answer', answer);
+    }
+
+    async getAnswers(userUid: string, questionUid: string) {
+        const answers = await this.questionsAnswersRepository.getAnswers(questionUid);
+
+        return asServiceResponse(HttpStatus.OK, `Answers of question ${questionUid}`, answers);
+    }
+
+    async getAnswersByUser(userUid: string) {
+        try {
+            const answers = await this.questionsAnswersRepository.getAnswersByUser(userUid);
+            return asServiceResponse(HttpStatus.OK, `Answers by user ${userUid}`, answers);
+        } catch (error) {
+            if (error instanceof FirestoreDocumentNotFoundException) {
+                throw new UserNotFoundException(userUid);
+            }
+            throw new InternalServerErrorException();
+        }
     }
 
     async createAnswer(userUid: string, questionUid: string, data: CreateAnswerDto) {

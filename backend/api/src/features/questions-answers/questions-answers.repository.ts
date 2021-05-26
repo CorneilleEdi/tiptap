@@ -3,7 +3,10 @@ import { PartialDeep } from 'type-fest';
 import { Inject, Injectable } from '@nestjs/common';
 import { FirestoreDocumentNotFoundException } from '../../shared/libs/gcp/firestore/firestore.exception';
 import { FirestoreCollections } from '../../shared/utils/constants/firestore.constant';
+import { PROMISES_STATUS } from '../../shared/utils/constants/promise.constant';
 import { GCP_FIRESTORE } from '../../shared/utils/constants/providers.constant';
+import { IFirestoreUser } from '../users/profile/models/user-profile.interface';
+import { UserProfileMapper } from '../users/profile/models/user-profile.mapper';
 import { IAnswer, IFirestoreAnswer } from './answers/models/answer.interface';
 import { AnswerMapper } from './answers/models/answer.mapper';
 import { IFirestoreQuestion, IQuestion } from './questions/models/question.interface';
@@ -35,6 +38,35 @@ export class QuestionsAnswersRepository {
         }
 
         return QuestionMapper.fromFirebaseDataToData({ ...snapshot.data() } as IFirestoreQuestion);
+    }
+
+    async getQuestionsByUser(userUid: string) {
+        const userSnapshot = await this.usersCollection.doc(userUid).get();
+
+        if (!userSnapshot.exists) throw new FirestoreDocumentNotFoundException(userUid);
+        const user = UserProfileMapper.fromFirebaseDataToData({
+            ...userSnapshot.data(),
+        } as IFirestoreUser);
+
+        const ops = [];
+
+        user.questions.map((question) => ops.push(this.questionsCollection.doc(question).get()));
+
+        const questionsResults = await Promise.allSettled(ops);
+
+        return questionsResults
+            .map((questionsResult) => {
+                if (questionsResult.status === PROMISES_STATUS.FULFILLED) {
+                    const snapshot =
+                        questionsResult.value as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+                    if (snapshot.exists) {
+                        return QuestionMapper.fromFirebaseDataToData(
+                            snapshot.data() as unknown as IFirestoreQuestion,
+                        );
+                    }
+                }
+            })
+            .filter((question) => question);
     }
 
     async createQuestion(userUid: string, questionUid: string, data: PartialDeep<IQuestion>) {
@@ -120,6 +152,34 @@ export class QuestionsAnswersRepository {
         return AnswerMapper.fromFirebaseDataToData({ ...snapshot.data() } as IFirestoreAnswer);
     }
 
+    async getAnswersByUser(userUid: string) {
+        return Promise.resolve([]);
+    }
+
+    async getAnswers(questionUid: string) {
+        const question = await this.getQuestion(questionUid, false);
+
+        const ops = [];
+
+        question.answers.map((answer) => ops.push(this.answersCollection.doc(answer).get()));
+
+        const answersResults = await Promise.allSettled(ops);
+
+        return answersResults
+            .map((answersResult) => {
+                if (answersResult.status === PROMISES_STATUS.FULFILLED) {
+                    const snapshot =
+                        answersResult.value as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+                    if (snapshot.exists) {
+                        return AnswerMapper.fromFirebaseDataToData(
+                            snapshot.data() as unknown as IFirestoreAnswer,
+                        );
+                    }
+                }
+            })
+            .filter((answer) => answer);
+    }
+
     async createAnswer(
         userUid: string,
         questionUid: string,
@@ -128,6 +188,7 @@ export class QuestionsAnswersRepository {
     ) {
         await this.firestore.runTransaction(async (t) => {
             const questionRef = this.questionsCollection.doc(questionUid);
+            const userRef = this.usersCollection.doc(userUid);
             const snapshot = await t.get(questionRef);
 
             if (!snapshot.exists) throw new FirestoreDocumentNotFoundException(questionUid);
@@ -149,6 +210,7 @@ export class QuestionsAnswersRepository {
                 }),
             );
             t.update(questionRef, { answers: FieldValue.arrayUnion(answerUid) });
+            t.update(userRef, { answers: FieldValue.arrayUnion(answerUid) });
         });
 
         return await this.getAnswer(answerUid);

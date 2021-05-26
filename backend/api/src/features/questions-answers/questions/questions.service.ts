@@ -2,6 +2,7 @@ import { extname } from 'path';
 import {
     HttpStatus,
     Injectable,
+    InternalServerErrorException,
     Logger,
     NotFoundException,
     UnauthorizedException,
@@ -10,9 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import { UsersProfileRepository } from '../../../features/users/profile/users-profile.repository';
 import { CONFIGURATIONS } from '../../../shared/configuration';
 import { asServiceResponse } from '../../../shared/core/middlewares/responses.middleware';
+import { FirestoreDocumentNotFoundException } from '../../../shared/libs/gcp/firestore/firestore.exception';
 import { StorageService } from '../../../shared/libs/gcp/storage';
 import { ERROR_MESSAGE } from '../../../shared/utils/constants/error-message';
 import { Helpers } from '../../../shared/utils/helpers';
+import { UserNotFoundException } from '../../users/profile/users.exception';
 import { QuestionsAnswersRepository } from '../questions-answers.repository';
 import { CreateQuestionDto, UpdateQuestionDto } from './questions.dto';
 
@@ -31,9 +34,39 @@ export class QuestionsService {
     }
 
     async getQuestion(userUid: string, questionUid: string) {
-        const question = await this.getUserQuestion(userUid, questionUid);
+        const question = await this.questionsAnswersRepository.getQuestion(questionUid);
+
+        if (!question) {
+            throw new NotFoundException(`question ${questionUid} not found`);
+        }
 
         return asServiceResponse(HttpStatus.OK, `Question `, question);
+    }
+
+    async getQuestionWithAnswers(uid: string, questionUid: string) {
+        const question = await this.questionsAnswersRepository.getQuestion(questionUid);
+
+        if (!question) {
+            throw new NotFoundException(`question ${questionUid} not found`);
+        }
+
+        const answers = await this.questionsAnswersRepository.getAnswers(questionUid);
+
+        Object.assign(question, { answers });
+
+        return asServiceResponse(HttpStatus.OK, `Question `, question);
+    }
+
+    async getQuestionsByUser(userUid: string) {
+        try {
+            const questions = await this.questionsAnswersRepository.getQuestionsByUser(userUid);
+            return asServiceResponse(HttpStatus.OK, `Questions by user ${userUid}`, questions);
+        } catch (error) {
+            if (error instanceof FirestoreDocumentNotFoundException) {
+                throw new UserNotFoundException(userUid);
+            }
+            throw new InternalServerErrorException();
+        }
     }
 
     async createQuestion(userUid: string, { title, content, image, topics }: CreateQuestionDto) {
