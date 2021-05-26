@@ -1,16 +1,17 @@
 import { Request } from 'express';
 import { FormDataRequest } from 'nestjs-form-data';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { DevelopmentOnlyGuard } from '../../../shared/core/guards/development-only.guard';
 import { UsersAuthenticationRequiredGuard } from '../../users/authentication/users-authentication.guard';
 import { CreateQuestionDto, UpdateQuestionDto } from './questions.dto';
 import { QuestionsService } from './questions.service';
 
 @Controller('questions')
-@UseGuards(UsersAuthenticationRequiredGuard)
 export class QuestionsController {
     constructor(private readonly questionsService: QuestionsService) {}
 
     @Get(':questionUid')
+    @UseGuards(UsersAuthenticationRequiredGuard)
     async getQuestion(@Req() req: Request, @Param('questionUid') questionUid: string) {
         return await this.questionsService.getQuestion(req.uid, questionUid);
     }
@@ -33,7 +34,13 @@ export class QuestionsController {
         return await this.questionsService.updateQuestion(req.uid, questionUid, data);
     }
 
+    @Delete('all')
+    async deleteAllQuestions() {
+        return await this.questionsService.deleteAll();
+    }
+
     @Delete(':questionUid')
+    @UseGuards(...[UsersAuthenticationRequiredGuard, DevelopmentOnlyGuard])
     async deleteQuestion(@Req() req: Request, @Param('questionUid') questionUid: string) {
         return await this.questionsService.deleteQuestion(req.uid, questionUid);
     }

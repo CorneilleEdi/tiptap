@@ -1,4 +1,4 @@
-import { CollectionReference, Firestore } from '@google-cloud/firestore';
+import { CollectionReference, FieldValue, Firestore } from '@google-cloud/firestore';
 import { PartialDeep } from 'type-fest';
 import { Inject, Injectable } from '@nestjs/common';
 import { FirestoreDocumentNotFoundException } from '../../shared/libs/gcp/firestore/firestore.exception';
@@ -67,6 +67,16 @@ export class QuestionsAnswersRepository {
         return await this.questionsCollection.doc(questionUid).delete();
     }
 
+    async deleteAllQuestions() {
+        const documents = await this.questionsCollection.get();
+
+        const ops = [];
+
+        documents.docs.map((doc) => ops.push(doc.ref.delete()));
+
+        return Promise.all(ops);
+    }
+
     /******************************************
      * ANSWERS
      ******************************************/
@@ -91,38 +101,75 @@ export class QuestionsAnswersRepository {
         answerUid: string,
         data: PartialDeep<IAnswer>,
     ) {
-        const question = await this.getQuestion(questionUid, false);
+        await this.firestore.runTransaction(async (t) => {
+            const questionRef = this.questionsCollection.doc(questionUid);
+            const snapshot = await t.get(questionRef);
 
-        await this.answersCollection.doc(answerUid).set(
-            AnswerMapper.fromDataToFirebaseData({
-                uid: answerUid,
-                questionUid: questionUid,
-                number: question.answersCount++,
-                ...data,
-                userUid,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            }),
-        );
+            if (!snapshot.exists) throw new FirestoreDocumentNotFoundException(questionUid);
 
-        return await this.getAnswer(answerUid);
-    }
+            const question = QuestionMapper.fromFirebaseDataToData({
+                ...snapshot.data(),
+            } as IFirestoreQuestion);
 
-    async updateAnswer(answerUid: string, data: PartialDeep<IAnswer>) {
-        const answer = await this.getAnswer(answerUid);
-        await this.answersCollection.doc(answerUid).set({
-            ...AnswerMapper.fromDataToFirebaseData({
-                uid: answerUid,
-                ...answer,
-                ...data,
-                updatedAt: Date.now(),
-            }),
+            t.set(
+                this.answersCollection.doc(answerUid),
+                AnswerMapper.fromDataToFirebaseData({
+                    uid: answerUid,
+                    questionUid: questionUid,
+                    number: question.answersCount + 1,
+                    ...data,
+                    userUid,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                }),
+            );
+            t.update(questionRef, { answers: FieldValue.arrayUnion(answerUid) });
         });
 
         return await this.getAnswer(answerUid);
     }
 
-    async deleteAnswer(answerUid: string) {
-        return await this.answersCollection.doc(answerUid).delete();
+    async updateAnswer(answerUid: string, data: PartialDeep<IAnswer>) {
+        await this.firestore.runTransaction(async (t) => {
+            const answerRef = this.answersCollection.doc(answerUid);
+            const snapshot = await t.get(answerRef);
+
+            if (!snapshot.exists) throw new FirestoreDocumentNotFoundException(answerUid);
+
+            const answer = AnswerMapper.fromFirebaseDataToData({
+                ...snapshot.data(),
+            } as IFirestoreAnswer);
+
+            t.update(answerRef, {
+                ...AnswerMapper.fromDataToFirebaseData({
+                    uid: answerUid,
+                    ...answer,
+                    ...data,
+                    updatedAt: Date.now(),
+                }),
+            });
+        });
+
+        return await this.getAnswer(answerUid);
+    }
+
+    async deleteAnswer(questionUid: string, answerUid: string) {
+        return await this.firestore.runTransaction(async (t) => {
+            const questionRef = this.questionsCollection.doc(questionUid);
+            const answerRef = this.answersCollection.doc(answerUid);
+
+            const snapshot = await t.get(answerRef);
+
+            if (!snapshot.exists) throw new FirestoreDocumentNotFoundException(answerUid);
+
+            const answer = AnswerMapper.fromFirebaseDataToData({
+                ...snapshot.data(),
+            } as IFirestoreAnswer);
+
+            t.delete(answerRef);
+            t.update(questionRef, { answers: FieldValue.arrayRemove(answerUid) });
+
+            return answer;
+        });
     }
 }

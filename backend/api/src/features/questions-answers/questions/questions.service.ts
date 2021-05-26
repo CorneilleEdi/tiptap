@@ -122,6 +122,11 @@ export class QuestionsService {
         return asServiceResponse(HttpStatus.OK, `Question ${questionUid} deleted`, question);
     }
 
+    async deleteAll() {
+        await this.questionsAnswersRepository.deleteAllQuestions();
+        return asServiceResponse(HttpStatus.OK, `Questions deleted`, {});
+    }
+
     private async getUserQuestion(userUid: string, questionUid: string) {
         const question = await this.questionsAnswersRepository.getQuestion(questionUid);
 
