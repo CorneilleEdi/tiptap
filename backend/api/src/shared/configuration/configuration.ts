@@ -25,7 +25,7 @@ export const configurations = () => ({
     gcp: {
         project_id: 'tiptapflow',
         storage: {
-            users_images_bucket: process.env.STORAGE_USERS_IMAGE_BUCKET,
+            users_images_bucket: 'loopbin-tiptapflow-users-profile-image',
         },
     },
 });
@@ -38,6 +38,5 @@ export const configurationsValidationSchema = Joi.object({
         .default('development'),
     STAGE: Joi.string().valid('staging', 'production', 'local').default('local'),
     RUNNING_ENVIRONMENT: Joi.string().valid('local', 'cloud').default('local'),
-    APP_NAME: Joi.string().default('abita'),
-    STORAGE_USERS_IMAGE_BUCKET: Joi.string().required(),
+    APP_NAME: Joi.string().default('tiptap'),
 });
