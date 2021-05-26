@@ -1,23 +1,23 @@
+import { extname } from 'path';
 import {
     HttpStatus,
     Injectable,
     Logger,
     NotFoundException,
-    UnauthorizedException
+    UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { extname } from 'path';
-import { CONFIGURATIONS } from '../../../../shared/configuration';
-import { asServiceResponse } from '../../../../shared/core/middlewares/responses.middleware';
-import { StorageService } from '../../../../shared/libs/gcp/storage';
-import { ERROR_MESSAGE } from '../../../../shared/utils/constants/error-message';
-import { Helpers } from '../../../../shared/utils/helpers';
-import { QuestionsAnswersRepository } from '../../../questions-answers/questions-answers.repository';
-import { UsersProfileRepository } from '../../profile/users-profile.repository';
-import { UserCreateQuestionDto, UserUpdateQuestionDto } from './users-questions.dto';
+import { UsersProfileRepository } from '../../../features/users/profile/users-profile.repository';
+import { CONFIGURATIONS } from '../../../shared/configuration';
+import { asServiceResponse } from '../../../shared/core/middlewares/responses.middleware';
+import { StorageService } from '../../../shared/libs/gcp/storage';
+import { ERROR_MESSAGE } from '../../../shared/utils/constants/error-message';
+import { Helpers } from '../../../shared/utils/helpers';
+import { QuestionsAnswersRepository } from '../questions-answers.repository';
+import { CreateQuestionDto, UpdateQuestionDto } from './questions.dto';
 
 @Injectable()
-export class UsersQuestionsService {
+export class QuestionsService {
     private readonly logger: Logger = new Logger(this.constructor.name);
     private readonly BUCKET_NAME;
 
@@ -36,13 +36,8 @@ export class UsersQuestionsService {
         return asServiceResponse(HttpStatus.OK, `Question `, question);
     }
 
-    async createQuestion(
-        userUid: string,
-        { title, content, image, topics }: UserCreateQuestionDto,
-    ) {
+    async createQuestion(userUid: string, { title, content, image, topics }: CreateQuestionDto) {
         const questionUid = Helpers.generateUid();
-
-
 
         let question;
 
@@ -78,7 +73,7 @@ export class UsersQuestionsService {
     async updateQuestion(
         userUid: string,
         questionUid: string,
-        { title, content, image, topics }: UserUpdateQuestionDto,
+        { title, content, image, topics }: UpdateQuestionDto,
     ) {
         const question = await this.getUserQuestion(userUid, questionUid);
 

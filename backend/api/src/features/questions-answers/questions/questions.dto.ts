@@ -1,7 +1,7 @@
 import { IsOptional, IsString, Length } from 'class-validator';
 import { HasMimeType, IsFile, MemoryStoredFile } from 'nestjs-form-data';
 
-export class UserCreateQuestionDto {
+export class CreateQuestionDto {
     @IsString()
     @Length(6)
     title: string;
@@ -20,7 +20,7 @@ export class UserCreateQuestionDto {
     topics: string;
 }
 
-export class UserUpdateQuestionDto {
+export class UpdateQuestionDto {
     @IsString()
     @Length(6)
     @IsOptional()
