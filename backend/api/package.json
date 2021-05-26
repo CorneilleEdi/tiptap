@@ -38,6 +38,7 @@
         "hpp": "^0.2.3",
         "joi": "^17.4.0",
         "nanoid": "^3.1.23",
+        "nestjs-form-data": "^1.4.1",
         "nestjs-throttler": "^0.3.0",
         "reflect-metadata": "^0.1.13",
         "rimraf": "^3.0.2",

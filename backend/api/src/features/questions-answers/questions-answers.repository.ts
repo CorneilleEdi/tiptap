@@ -35,11 +35,12 @@ export class QuestionsAnswersRepository {
         return QuestionMapper.fromFirebaseDataToData({ ...snapshot.data() } as IFirestoreQuestion);
     }
 
-    async createQuestion(questionUid: string, data: PartialDeep<IQuestion>) {
+    async createQuestion(userUid: string, questionUid: string, data: PartialDeep<IQuestion>) {
         await this.questionsCollection.doc(questionUid).set(
             QuestionMapper.fromDataToFirebaseData({
                 uid: questionUid,
                 ...data,
+                userUid,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             }),
@@ -62,7 +63,7 @@ export class QuestionsAnswersRepository {
         return await this.getQuestion(questionUid);
     }
 
-    async deleteQuestion(userUid: string, questionUid: string) {
+    async deleteQuestion(questionUid: string) {
         return await this.questionsCollection.doc(questionUid).delete();
     }
 
@@ -84,7 +85,12 @@ export class QuestionsAnswersRepository {
         return AnswerMapper.fromFirebaseDataToData({ ...snapshot.data() } as IFirestoreAnswer);
     }
 
-    async createAnswer(questionUid: string, answerUid: string, data: PartialDeep<IAnswer>) {
+    async createAnswer(
+        userUid: string,
+        questionUid: string,
+        answerUid: string,
+        data: PartialDeep<IAnswer>,
+    ) {
         const question = await this.getQuestion(questionUid, false);
 
         await this.answersCollection.doc(answerUid).set(
@@ -93,6 +99,7 @@ export class QuestionsAnswersRepository {
                 questionUid: questionUid,
                 number: question.answersCount++,
                 ...data,
+                userUid,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             }),

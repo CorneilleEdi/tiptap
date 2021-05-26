@@ -13,6 +13,7 @@ export enum CONFIGURATIONS {
     // GCP
     GCLOUD_PROJECT = 'gcp.project_id',
     STORAGE_USERS_IMAGE_BUCKET = 'gcp.storage.users_images_bucket',
+    STORAGE_QUESTIONS_IMAGES_BUCKET = 'gcp.storage.questions_images_bucket',
 }
 
 export const configurations = () => ({
@@ -26,6 +27,7 @@ export const configurations = () => ({
         project_id: 'tiptapflow',
         storage: {
             users_images_bucket: 'loopbin-tiptapflow-users-profile-image',
+            questions_images_bucket: 'loopbin-tiptapflow-questions-images',
         },
     },
 });
