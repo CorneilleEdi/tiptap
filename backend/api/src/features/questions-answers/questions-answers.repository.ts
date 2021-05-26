@@ -13,9 +13,11 @@ import { QuestionMapper } from './questions/models/question.mapper';
 export class QuestionsAnswersRepository {
     private readonly questionsCollection: CollectionReference;
     private readonly answersCollection: CollectionReference;
+    private readonly usersCollection: CollectionReference;
     constructor(@Inject(GCP_FIRESTORE) private readonly firestore: Firestore) {
         this.questionsCollection = this.firestore.collection(FirestoreCollections.QUESTIONS);
         this.answersCollection = this.firestore.collection(FirestoreCollections.ANSWERS);
+        this.usersCollection = this.firestore.collection(FirestoreCollections.USERS);
     }
     /******************************************
      * QUESTIONS
@@ -36,16 +38,22 @@ export class QuestionsAnswersRepository {
     }
 
     async createQuestion(userUid: string, questionUid: string, data: PartialDeep<IQuestion>) {
-        await this.questionsCollection.doc(questionUid).set(
-            QuestionMapper.fromDataToFirebaseData({
-                uid: questionUid,
-                ...data,
-                userUid,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            }),
-        );
+        await this.firestore.runTransaction(async (t) => {
+            const questionRef = this.questionsCollection.doc(questionUid);
+            const userRef = this.usersCollection.doc(userUid);
 
+            t.set(
+                questionRef,
+                QuestionMapper.fromDataToFirebaseData({
+                    uid: questionUid,
+                    ...data,
+                    userUid,
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                }),
+            );
+            t.update(userRef, { questions: FieldValue.arrayUnion(questionUid) });
+        });
         return await this.getQuestion(questionUid);
     }
 
@@ -63,8 +71,25 @@ export class QuestionsAnswersRepository {
         return await this.getQuestion(questionUid);
     }
 
-    async deleteQuestion(questionUid: string) {
-        return await this.questionsCollection.doc(questionUid).delete();
+    async deleteQuestion(userUid: string, questionUid: string) {
+        await this.firestore.runTransaction(async (t) => {
+            const questionRef = this.questionsCollection.doc(questionUid);
+            const usersRef = this.usersCollection.doc(userUid);
+
+            const snapshot = await t.get(questionRef);
+
+            if (!snapshot.exists) throw new FirestoreDocumentNotFoundException(questionUid);
+
+            const question = QuestionMapper.fromFirebaseDataToData({
+                ...snapshot.data(),
+            } as IFirestoreQuestion);
+
+            t.delete(questionRef);
+            t.update(usersRef, { questions: FieldValue.arrayUnion(questionUid) });
+            question.answers.map((answer) => t.delete(this.answersCollection.doc(answer)));
+
+            return question;
+        });
     }
 
     async deleteAllQuestions() {

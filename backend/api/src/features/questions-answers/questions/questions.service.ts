@@ -114,7 +114,7 @@ export class QuestionsService {
     async deleteQuestion(userUid: string, questionUid: string) {
         const question = await this.getUserQuestion(userUid, questionUid);
 
-        await this.questionsAnswersRepository.deleteQuestion(questionUid);
+        await this.questionsAnswersRepository.deleteQuestion(userUid, questionUid);
 
         //TODO: simplify
         // TODO: Delete previous image
