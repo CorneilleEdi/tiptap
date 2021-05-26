@@ -2,4 +2,4 @@
 # Env
 .env
 .env.*
-/backend/api/firebase-data/
+**/node_modules
