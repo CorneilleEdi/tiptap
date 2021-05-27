@@ -51,7 +51,15 @@
 
                 <v-card-text class="py-2">or</v-card-text>
 
-                <v-btn class="white--text subtitle-1" block large color="red" depressed>
+                <v-btn
+                  @click="googleAuth"
+                  class="white--text subtitle-1"
+                  block
+                  large
+                  color="red"
+                  depressed
+                  :loading="googleAuthLoading"
+                >
                   <svg
                     width="24"
                     height="24"
@@ -81,6 +89,8 @@
 </template>
 
 <script lang="ts">
+import { NotificationsUtil } from "@/shared/utils/notifications.util";
+import authModule from "@/store/modules/auth.module";
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
@@ -90,10 +100,31 @@ import { Component, Vue } from "vue-property-decorator";
 export default class AuthenticationPage extends Vue {
   valid = false;
   email = "";
+  googleAuthLoading = false;
 
   emailRules = [
     (v: any) => !!v || "E-mail is required",
     (v: any) => /.+@.+/.test(v) || "E-mail must be valid",
   ];
+
+  async googleAuth() {
+    this.googleAuthLoading = true;
+
+    try {
+      const isNew = await authModule.authWithGoogle();
+
+      this.googleAuthLoading = false;
+      if (isNew) {
+        this.$router.push({
+          name: this.$routesNames.profile,
+        });
+      } else {
+        this.$router.push("/");
+      }
+    } catch (error) {
+      this.googleAuthLoading = false;
+      NotificationsUtil.showError({ title: "Error", message: "Authentication with google error" });
+    }
+  }
 }
 </script>

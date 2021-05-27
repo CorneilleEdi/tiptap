@@ -18,6 +18,6 @@ export default new Vuetify({
         secondary: "#fafafa",
         anchor: "#2196f3",
       },
-    }
+    },
   },
 });

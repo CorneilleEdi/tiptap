@@ -34,6 +34,7 @@ module.exports = {
     "@typescript-eslint/no-empty-function": "off",
     "no-useless-catch": "off",
     "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
   },
   overrides: [
     {

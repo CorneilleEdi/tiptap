@@ -1,7 +1,8 @@
 const NProgress = require("nprogress");
+import { firebaseService } from "@/shared/services/firebase/firebase.service";
 import Vue from "vue";
-import VueRouter from "vue-router";
-import RoutesNames from "./routes-names.router";
+import VueRouter, { Route } from "vue-router";
+import { default as routesNames, default as RoutesNames } from "./routes-names.router";
 import { Routes } from "./routes.router";
 Vue.use(VueRouter);
 
@@ -14,8 +15,32 @@ const router = new VueRouter({
   routes: Routes,
 });
 
+const requiresAuthGuard = (to: Route, from: Route, next: any): boolean => {
+  const currentUser = firebaseService.getCurrentUser();
+  const isAuth = to.matched.some((record) => record.meta.auth);
+
+  if (isAuth && !currentUser) {
+    //next({ name: "auth", query: { redirect: to.fullPath } });
+    next({ name: routesNames.authentication });
+    return true;
+  } else if (!isAuth && !currentUser) {
+    next();
+    return true;
+  } else {
+    next();
+  }
+
+  return false;
+};
+
+
+
+
 router.beforeEach((to, from, next) => {
   NProgress.start();
+  if (requiresAuthGuard(to, from, next)) {
+    return;
+  }
   next();
 });
 
