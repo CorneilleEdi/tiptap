@@ -26,4 +26,5 @@ terraform {
 module "functions" {
   source         = "./functions"
   project_region = var.project_region
+  project_id     = var.project_id
 }

@@ -8,3 +8,7 @@ variable "functions_bucket" {
 variable "project_region" {
 
 }
+
+variable "project_id" {
+
+}
