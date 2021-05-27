@@ -1,6 +1,6 @@
 import { Timestamp } from '@google-cloud/firestore';
 import { PartialDeep } from 'type-fest';
-import { IFirestoreQuestion, IQuestion } from './question.interface';
+import { ICachedQuestion, IFirestoreQuestion, IQuestion } from './question.interface';
 
 export class QuestionMapper {
     static fromFirebaseDataToData(data: IFirestoreQuestion): IQuestion {
@@ -43,6 +43,14 @@ export class QuestionMapper {
                 violence: data.imageSafetyScores?.violence || 0,
                 racy: data.imageSafetyScores?.racy || 0,
             },
+        };
+    }
+    static fromDataToCachedData(data: IQuestion): ICachedQuestion {
+        return {
+            uid: data.uid,
+            title: data.title,
+            content: data.content,
+            topics: data.topics.join(','),
         };
     }
 }

@@ -1,30 +1,75 @@
 import { CollectionReference, FieldValue, Firestore } from '@google-cloud/firestore';
 import { PartialDeep } from 'type-fest';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { FirestoreDocumentNotFoundException } from '../../shared/libs/gcp/firestore/firestore.exception';
-import { FirestoreCollections } from '../../shared/utils/constants/firestore.constant';
+import { MeiliSearchService } from '../../shared/libs/meilisearch/meilisearch.service';
+import { Collections } from '../../shared/utils/constants/collections-names.constant';
 import { PROMISES_STATUS } from '../../shared/utils/constants/promise.constant';
 import { GCP_FIRESTORE } from '../../shared/utils/constants/providers.constant';
 import { IFirestoreUser } from '../users/profile/models/user-profile.interface';
 import { UserProfileMapper } from '../users/profile/models/user-profile.mapper';
 import { IAnswer, IFirestoreAnswer } from './answers/models/answer.interface';
 import { AnswerMapper } from './answers/models/answer.mapper';
-import { IFirestoreQuestion, IQuestion } from './questions/models/question.interface';
+import {
+    ICachedQuestion,
+    IFirestoreQuestion,
+    IQuestion,
+} from './questions/models/question.interface';
 import { QuestionMapper } from './questions/models/question.mapper';
 
+// TODO: Simplify by removing the caching layer to Cloud Functions
 @Injectable()
 export class QuestionsAnswersRepository {
+    private readonly logger: Logger = new Logger(this.constructor.name);
+
     private readonly questionsCollection: CollectionReference;
     private readonly answersCollection: CollectionReference;
     private readonly usersCollection: CollectionReference;
-    constructor(@Inject(GCP_FIRESTORE) private readonly firestore: Firestore) {
-        this.questionsCollection = this.firestore.collection(FirestoreCollections.QUESTIONS);
-        this.answersCollection = this.firestore.collection(FirestoreCollections.ANSWERS);
-        this.usersCollection = this.firestore.collection(FirestoreCollections.USERS);
+
+    private readonly questionsIndex: string;
+    constructor(
+        @Inject(GCP_FIRESTORE) private readonly firestore: Firestore,
+        private readonly meiliSearchService: MeiliSearchService,
+    ) {
+        this.questionsIndex = Collections.QUESTIONS;
+        this.questionsCollection = this.firestore.collection(Collections.QUESTIONS);
+        this.answersCollection = this.firestore.collection(Collections.ANSWERS);
+        this.usersCollection = this.firestore.collection(Collections.USERS);
     }
     /******************************************
      * QUESTIONS
      ******************************************/
+
+    // TODO: Work on the limit
+    async searchQuestions(key: string, safe = true): Promise<IQuestion[]> {
+        const results = await this.meiliSearchService.searchDocuments(this.questionsIndex, key);
+
+        if (results.nbHits === 0) {
+            return [];
+        }
+
+        const ops = [];
+
+        results.hits.map((cachedQuestion: ICachedQuestion) =>
+            ops.push(this.questionsCollection.doc(cachedQuestion.uid).get()),
+        );
+
+        const questionsResults = await Promise.allSettled(ops);
+
+        return questionsResults
+            .map((questionsResult) => {
+                if (questionsResult.status === PROMISES_STATUS.FULFILLED) {
+                    const snapshot =
+                        questionsResult.value as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+                    if (snapshot.exists) {
+                        return QuestionMapper.fromFirebaseDataToData(
+                            snapshot.data() as unknown as IFirestoreQuestion,
+                        );
+                    }
+                }
+            })
+            .filter((question) => question);
+    }
 
     async getQuestion(id: string, safe = true): Promise<IQuestion> | null {
         const snapshot = await this.questionsCollection.doc(id).get();
@@ -86,25 +131,46 @@ export class QuestionsAnswersRepository {
             );
             t.update(userRef, { questions: FieldValue.arrayUnion(questionUid) });
         });
-        return await this.getQuestion(questionUid);
+
+        const question = await this.getQuestion(questionUid);
+
+        try {
+            await this.meiliSearchService.addDocuments(this.questionsIndex, [
+                QuestionMapper.fromDataToCachedData(question),
+            ]);
+        } catch (error) {
+            this.logger.error(error.message, error);
+        }
+
+        return question;
     }
 
     async updateQuestion(questionUid: string, data: PartialDeep<IQuestion>) {
-        const question = await this.getQuestion(questionUid);
+        const oldQuestion = await this.getQuestion(questionUid);
         await this.questionsCollection.doc(questionUid).set({
             ...QuestionMapper.fromDataToFirebaseData({
                 uid: questionUid,
-                ...question,
+                ...oldQuestion,
                 ...data,
                 updatedAt: Date.now(),
             }),
         });
 
-        return await this.getQuestion(questionUid);
+        const question = await this.getQuestion(questionUid);
+
+        try {
+            await this.meiliSearchService.updateDocuments(this.questionsIndex, [
+                QuestionMapper.fromDataToCachedData(question),
+            ]);
+        } catch (error) {
+            this.logger.error(error.message, error);
+        }
+
+        return question;
     }
 
     async deleteQuestion(userUid: string, questionUid: string) {
-        await this.firestore.runTransaction(async (t) => {
+        const question = await this.firestore.runTransaction(async (t) => {
             const questionRef = this.questionsCollection.doc(questionUid);
             const usersRef = this.usersCollection.doc(userUid);
 
@@ -122,6 +188,14 @@ export class QuestionsAnswersRepository {
 
             return question;
         });
+
+        try {
+            await this.meiliSearchService.deleteDocuments(this.questionsIndex, [questionUid]);
+        } catch (error) {
+            this.logger.error(error.message, error);
+        }
+
+        return question;
     }
 
     async deleteAllQuestions() {
@@ -131,7 +205,15 @@ export class QuestionsAnswersRepository {
 
         documents.docs.map((doc) => ops.push(doc.ref.delete()));
 
-        return Promise.all(ops);
+        await Promise.all(ops);
+
+        try {
+            await this.meiliSearchService.deleteAllDocuments(this.questionsIndex);
+        } catch (error) {
+            this.logger.error(error.message, error);
+        }
+
+        return documents;
     }
 
     /******************************************

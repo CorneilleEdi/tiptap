@@ -40,3 +40,9 @@ export class UpdateQuestionDto {
     @IsOptional()
     topics: string;
 }
+
+export class SearchQuestionsDto {
+    @IsString()
+    @Length(3)
+    key: string;
+}

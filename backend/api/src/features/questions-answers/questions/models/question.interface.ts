@@ -44,3 +44,11 @@ export interface IQuestion {
     answers: string[];
     answersCount: number;
 }
+
+export interface ICachedQuestion {
+    // DocumentID
+    uid: string;
+    title: string;
+    content: string;
+    topics: string;
+}

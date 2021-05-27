@@ -3,12 +3,17 @@ import { FormDataRequest } from 'nestjs-form-data';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { DevelopmentOnlyGuard } from '../../../shared/core/guards/development-only.guard';
 import { UsersAuthenticationRequiredGuard } from '../../users/authentication/users-authentication.guard';
-import { CreateQuestionDto, UpdateQuestionDto } from './questions.dto';
+import { CreateQuestionDto, SearchQuestionsDto, UpdateQuestionDto } from './questions.dto';
 import { QuestionsService } from './questions.service';
 
 @Controller('questions')
 export class QuestionsController {
     constructor(private readonly questionsService: QuestionsService) {}
+
+    @Get('search')
+    async search(@Body() data: SearchQuestionsDto) {
+        return await this.questionsService.searchQuestionsWithKey(data);
+    }
 
     @Get(':questionUid')
     async getQuestion(@Req() req: Request, @Param('questionUid') questionUid: string) {
@@ -16,8 +21,8 @@ export class QuestionsController {
     }
 
     @Get(':questionUid/full')
-    async getQuestionWithAnswers(@Req() req: Request, @Param('questionUid') questionUid: string) {
-        return await this.questionsService.getQuestionWithAnswers(req.uid, questionUid);
+    async getQuestionWithDetails(@Req() req: Request, @Param('questionUid') questionUid: string) {
+        return await this.questionsService.getQuestionWithDetails(req.uid, questionUid);
     }
 
     @Get('users/:userUid')

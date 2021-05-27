@@ -1,7 +1,7 @@
 import { CollectionReference, Firestore } from '@google-cloud/firestore';
 import { PartialDeep } from 'type-fest';
 import { Inject, Injectable } from '@nestjs/common';
-import { FirestoreCollections } from '../../../shared/utils/constants/firestore.constant';
+import { Collections } from '../../../shared/utils/constants/collections-names.constant';
 import { GCP_FIRESTORE } from '../../../shared/utils/constants/providers.constant';
 import { IFirestoreUser, IUser } from './models/user-profile.interface';
 import { UserProfileMapper } from './models/user-profile.mapper';
@@ -11,7 +11,7 @@ import { UserNotFoundException } from './users.exception';
 export class UsersProfileRepository {
     private readonly usersCollection: CollectionReference;
     constructor(@Inject(GCP_FIRESTORE) private readonly firestore: Firestore) {
-        this.usersCollection = this.firestore.collection(FirestoreCollections.USERS);
+        this.usersCollection = this.firestore.collection(Collections.USERS);
     }
 
     async getUser(id: string, safe = true): Promise<IUser> | null {
