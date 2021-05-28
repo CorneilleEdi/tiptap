@@ -18,7 +18,13 @@
     <v-container class="mt-16">
       <div class="d-flex">
         <h1>Profile of {{ user.name }}</h1>
-        <v-btn class="white--text ml-2" color="primary" depressed outlined>
+        <v-btn
+          class="white--text ml-2"
+          color="primary"
+          depressed
+          outlined
+          @click="openUpdateProfileDialog()"
+        >
           <svg
             class="mr-2"
             width="18"
@@ -41,20 +47,20 @@
 
       <h5 class="mt-8">Informations</h5>
 
-      <v-avatar
-        class="mt-6"
-        v-if="user.profileImage"
-        color="primary"
-        size="128"
-      >
-        <img :src="user.profileImage" :alt="user.name"
-      /></v-avatar>
+      <profile-image />
 
       <v-card class="my-6" max-width="900" outlined>
         <v-list-item two-line>
           <v-list-item-content>
             <v-list-item-title>Name</v-list-item-title>
             <v-list-item-subtitle>{{ user.name }}</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+        <v-divider />
+        <v-list-item two-line>
+          <v-list-item-content>
+            <v-list-item-title>About</v-list-item-title>
+            <v-list-item-subtitle>{{ user.about }}</v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
         <v-divider />
@@ -122,6 +128,10 @@
       @positiveClick="logoutUser()"
       @negativeClick="closeLogoutConfirmationDialog()"
     />
+    <update-profile-dialog
+      :show="showUpdateProfileDialog"
+      @negativeClick="closeUpdateProfileDialog()"
+    />
   </div>
 </template>
 <script>
@@ -129,14 +139,17 @@ import { mapGetters } from "vuex";
 import { DateUtil } from "../common/utils/date.util";
 import { LOGOUT } from "../store/types/actions.type";
 import ConfirmationDialog from "../components/dialogs/ConfirmationDialog";
+import UpdateProfileDialog from "../components/profile/UpdateProfileDialog";
+import ProfileImage from "../components/profile/ProfileImage";
 
 export default {
   name: "ProfilePage",
-  components: { ConfirmationDialog },
+  components: { ConfirmationDialog, UpdateProfileDialog, ProfileImage },
 
   data() {
     return {
       showLogoutConfirmationDialog: false,
+      showUpdateProfileDialog: false,
       logoutLoading: false,
     };
   },
@@ -156,6 +169,13 @@ export default {
 
     closeLogoutConfirmationDialog() {
       this.showLogoutConfirmationDialog = false;
+    },
+    openUpdateProfileDialog() {
+      this.showUpdateProfileDialog = true;
+    },
+
+    closeUpdateProfileDialog() {
+      this.showUpdateProfileDialog = false;
     },
 
     async logoutUser() {
