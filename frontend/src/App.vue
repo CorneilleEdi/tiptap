@@ -1,45 +1,32 @@
 <template>
-  <v-app>
+  <div id="app">
+    <div id="nav">
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link>
+    </div>
     <router-view />
-    <v-snackbar
-      bottom
-      v-model="show"
-      absolute
-      :color="error ? 'red' : 'primary'"
-      :multi-line="true"
-    >
-      {{ title }}
-      {{ message }}
-    </v-snackbar>
-  </v-app>
+  </div>
 </template>
 
-<script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { eventBus } from "./main";
-import { INotificationEventPayload, NotificationsUtil } from "./shared/utils/notifications.util";
-
-@Component({
-  name: "App",
-  components: {},
-})
-export default class App extends Vue {
-  show = false;
-  title = "";
-  message = "";
-  error = false;
-
-  created() {
-    eventBus.$on(NotificationsUtil.NOTIFICATION_EVENT, (data: INotificationEventPayload) => {
-      this.show = true;
-      this.title = data.title;
-      this.message = data.message || "";
-      this.error = data.error;
-    });
-  }
-
-  showSnackbar() {
-    this.show = true;
-  }
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
 }
-</script>
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>

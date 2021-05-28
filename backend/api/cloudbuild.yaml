@@ -26,6 +26,8 @@ steps:
               '$_PROJECT_REGION',
               '--platform',
               'managed',
+              '--vpc-connector',
+              'serverless-connector',
               '--cpu',
               '1',
               '--max-instances',

@@ -3,3 +3,5 @@
 .env
 .env.*
 **/node_modules
+frontend-demo
+data.ms

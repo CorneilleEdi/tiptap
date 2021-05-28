@@ -44,6 +44,7 @@ ENV APP_STAGE=production
 ENV RUNNING_ENVIRONMENT=cloud
 ARG APP_VERSION
 ENV APP_VERSION=${APP_VERSION}
+ENV MEILISEARCH_HOST=http://10.160.0.2
 
 COPY --from=builder /home/node/package*.json /home/node/
 COPY --from=builder /home/node/yarn.lock /home/node/
