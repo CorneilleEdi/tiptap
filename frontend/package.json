@@ -11,7 +11,11 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "dayjs": "^1.10.5",
+    "dotenv": "^10.0.0",
     "firebase": "^8.6.3",
+    "http-status": "^1.5.0",
+    "nprogress": "^0.2.0",
     "sanitize-html": "^2.4.0",
     "vue": "^2.6.11",
     "vue-axios": "^3.2.4",
@@ -39,15 +43,6 @@
     "vue-cli-plugin-vuetify": "~2.4.0",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.7.0"
-  },
-  
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ],
-  "jest": {
-    "preset": "@vue/cli-plugin-unit-jest"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"

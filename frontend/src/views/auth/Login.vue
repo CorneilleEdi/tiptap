@@ -1,6 +1,6 @@
 <template>
   <app-layout>
-    <v-content class="primary darken-2 primary--text darken-2--text">
+    <v-main class="primary darken-2 primary--text darken-2--text">
       <v-container fluid fill-height>
         <v-layout align-center justify-center>
           <v-flex xs12 sm8 md4>
@@ -53,7 +53,7 @@
                   <v-card-text class="py-2">or</v-card-text>
 
                   <v-btn
-                    @click="googleAuth"
+                    @click="loginWithGoogle"
                     class="white--text subtitle-1"
                     block
                     large
@@ -89,10 +89,11 @@
           </v-flex>
         </v-layout>
       </v-container>
-    </v-content>
+    </v-main>
   </app-layout>
 </template>
 <script>
+import { LOGIN_WITH_GOOGLE } from "../../store/types/actions.type";
 import AppLayout from "../AppLayout.vue";
 
 export default {
@@ -114,6 +115,17 @@ export default {
   methods: {
     async logout() {
       console.log("logout");
+    },
+    async loginWithGoogle() {
+      this.googleAuthLoading = true;
+      try {
+        await this.$store.dispatch(LOGIN_WITH_GOOGLE);
+        this.$router.push("/");
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.googleAuthLoading = false;
+      }
     },
   },
 };
