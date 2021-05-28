@@ -37,7 +37,11 @@
 <script>
 import { mapGetters } from "vuex";
 
-import { GET_CURRENT_USER } from "../store/types/actions.type";
+import {
+  GET_ANSWERS_BY_CURRENT_USER,
+  GET_CURRENT_USER,
+  GET_QUESTIONS_BY_CURRENT_USER,
+} from "../store/types/actions.type";
 
 export default {
   name: "Home",
@@ -57,11 +61,12 @@ export default {
   },
 
   methods: {
-    getCurrentUser() {
-      this.$store
-        .dispatch(GET_CURRENT_USER)
-        .then(() => {})
-        .catch();
+    async getCurrentUser() {
+      await Promise.allSettled([
+        this.$store.dispatch(GET_CURRENT_USER),
+        this.$store.dispatch(GET_QUESTIONS_BY_CURRENT_USER),
+        this.$store.dispatch(GET_ANSWERS_BY_CURRENT_USER),
+      ]);
     },
   },
 };

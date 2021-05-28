@@ -91,6 +91,8 @@
       </v-card>
 
       <v-divider />
+      <question-answers-tab class="my-8" />
+      <v-divider />
       <div class="mt-8">
         <v-btn
           :loading="logoutLoading"
@@ -141,10 +143,16 @@ import { LOGOUT } from "../store/types/actions.type";
 import ConfirmationDialog from "../components/dialogs/ConfirmationDialog";
 import UpdateProfileDialog from "../components/profile/UpdateProfileDialog";
 import ProfileImage from "../components/profile/ProfileImage";
+import QuestionAnswersTab from "../components/profile/QuestionAnswersTab.vue";
 
 export default {
   name: "ProfilePage",
-  components: { ConfirmationDialog, UpdateProfileDialog, ProfileImage },
+  components: {
+    ConfirmationDialog,
+    UpdateProfileDialog,
+    ProfileImage,
+    QuestionAnswersTab,
+  },
 
   data() {
     return {
@@ -179,7 +187,6 @@ export default {
     },
 
     async logoutUser() {
-      console.log("logout");
       this.closeLogoutConfirmationDialog();
       try {
         await this.$store.dispatch(LOGOUT);
